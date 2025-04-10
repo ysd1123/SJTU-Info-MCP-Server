@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ClearScript.V8" Version="7.5.0" />
+    <PackageReference Include="pythonnet" Version="3.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\mcp-csharp-sdk\src\ModelContextProtocol.AspNetCore\ModelContextProtocol.AspNetCore.csproj" />
+    <ProjectReference Include="..\mcp-csharp-sdk\src\ModelContextProtocol\ModelContextProtocol.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<ScriptFiles Include="../SJTUGeek.MCP.Scripts/scripts/**/*" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Controllers\" />
+	</ItemGroup>
+
+	<Target Name="CopyScripts" AfterTargets="Build">
+		<Copy SourceFiles="@(ScriptFiles)" DestinationFolder="$(OutputPath)scripts\%(RecursiveDir)" SkipUnchangedFiles="true" />
+	</Target>
+
+</Project>
