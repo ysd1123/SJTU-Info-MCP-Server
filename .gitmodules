@@ -1,0 +1,6 @@
+[submodule "mcp-csharp-sdk"]
+	path = mcp-csharp-sdk
+	url = https://github.com/1357310795/mcp-csharp-sdk.git
+[submodule "SJTUGeek.MCP.Scripts"]
+	path = SJTUGeek.MCP.Scripts
+	url = https://github.com/SJTU-Geek/sjtu-mcp-contrib.git
