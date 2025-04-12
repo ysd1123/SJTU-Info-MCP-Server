@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json;
 using SJTUGeek.MCP.Server.Extensions;
+using SJTUGeek.MCP.Server.Modules;
 
 namespace ModelContextProtocol.Server;
 
@@ -71,7 +72,7 @@ public class McpScriptServerTool : McpServerTool
     public override Tool ProtocolTool { get; }
 
     /// <inheritdoc />
-    public override async Task<CallToolResponse> InvokeAsync(
+    public override async ValueTask<CallToolResponse> InvokeAsync(
         RequestContext<CallToolRequestParams> request, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -81,6 +82,9 @@ public class McpScriptServerTool : McpServerTool
         //    Services = request.Server?.Services,
         //    Context = new Dictionary<object, object?>() { [typeof(RequestContext<CallToolRequestParams>)] = request }
         //};
+
+        var cookieProvider = request.Services!.GetRequiredService<JaCookieProvider>();
+
         JsonElement? result;
         try
         {
