@@ -6,6 +6,7 @@ using SJTUGeek.MCP.Server.Models;
 using System.Text.Json;
 using SJTUGeek.MCP.Server.Extensions;
 using SJTUGeek.MCP.Server.Modules;
+using System.Text.Json.Serialization;
 
 namespace ModelContextProtocol.Server;
 
@@ -47,7 +48,6 @@ public class McpScriptServerTool : McpServerTool
         }
     }
 
-    /// <summary>Gets the <see cref="AIFunction"/> wrapped by this tool.</summary>
     internal string ScriptName { get; }
     internal ScriptToolInfo ToolInfo { get; }
 
@@ -75,13 +75,43 @@ public class McpScriptServerTool : McpServerTool
         {
             using (Py.GIL())
             {
+                ScriptToolSchema schema = JsonSerializer.Deserialize<ScriptToolSchema>(ToolInfo.Schema);
                 var arguments = new List<PyObject>();
                 var argDict = request.Params?.Arguments;
-                if (argDict is not null)
+                //if (argDict is not null)
+                //{
+                //    foreach (var kvp in argDict)
+                //    {
+                //        arguments.Add(kvp.Value.GetCommonValue().ToPython());
+                //    }
+                //}
+                foreach (var definedArg in schema.Properties)
                 {
-                    foreach (var kvp in argDict)
+                    if (argDict is not null)
                     {
-                        arguments.Add(kvp.Value.GetCommonValue().ToPython());
+                        if (argDict.ContainsKey(definedArg.Key))
+                        {
+                            arguments.Add(argDict[definedArg.Key].GetCommonValue().ToPython());
+                        }
+                        else if (!schema.Required.Contains(definedArg.Key))
+                        {
+                            arguments.Add(PyObject.None);
+                        }
+                        else //required but not present
+                        {
+                            throw new ArgumentException("argument missing");
+                        }
+                    }
+                    else
+                    {
+                        if (!schema.Required.Contains(definedArg.Key))
+                        {
+                            arguments.Add(PyObject.None);
+                        }
+                        else //required but not present
+                        {
+                            throw new ArgumentException("argument missing");
+                        }
                     }
                 }
 
