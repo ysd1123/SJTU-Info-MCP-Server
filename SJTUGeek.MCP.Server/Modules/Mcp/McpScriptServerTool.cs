@@ -24,7 +24,6 @@ public class McpScriptServerTool : McpServerTool
                         "scripts." + Path.GetFileNameWithoutExtension(scriptName), "tool"
                     );
                     scope.Import("json");
-                    //var metadata = module.GetAttr("METADATA");
                     var metadata = scope.Eval("json.dumps(tool.METADATA)");
                     var metadata_json = JsonSerializer.Deserialize<ScriptInfo>(metadata.ToString());
 
@@ -71,7 +70,7 @@ public class McpScriptServerTool : McpServerTool
         RequestContext<CallToolRequestParams> request, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        JsonElement? result;
+        object? result;
         try
         {
             using (Py.GIL())
@@ -102,9 +101,34 @@ public class McpScriptServerTool : McpServerTool
                     );
                     var callResult = tool_module.InvokeMethod(ToolInfo.EntryPoint, arguments.ToArray());
 
-                    dynamic pyJson = scope.Import("json");
-                    var callResultJSON = pyJson.dumps(callResult);
-                    result = JsonSerializer.Deserialize<JsonElement>(callResultJSON.ToString());
+                    if (PyTuple.IsTupleType(callResult))
+                    {
+                        if (callResult.GetItem(0).As<bool>() == false)
+                        {
+                            dynamic pyJson = scope.Import("json");
+                            var callResultJSON = pyJson.dumps(callResult.GetItem(1));
+                            return new CallToolResponse()
+                            {
+                                IsError = true,
+                                Content = [new() { Text = callResultJSON.ToString(), Type = "text" }],
+                            };
+                        }
+                        callResult = callResult.GetItem(1);
+                    }
+                    if (PyString.IsStringType(callResult))
+                    {
+                        result = callResult.As<string>();
+                    }
+                    else if (callResult == PyType.None)
+                    {
+                        result = null;
+                    }
+                    else
+                    {
+                        dynamic pyJson = scope.Import("json");
+                        var callResultJSON = pyJson.dumps(callResult);
+                        result = JsonSerializer.Deserialize<JsonElement>(callResultJSON.ToString());
+                    }
                 }
             }
         }
@@ -125,40 +149,35 @@ public class McpScriptServerTool : McpServerTool
             };
         }
 
-        return result.Value.ValueKind switch
+        return result switch
         {
-            JsonValueKind.Number => new () {
-                Content = [new() { Text = result.Value.ToString(), Type = "text" }]
+            JsonElement json => ConvertJsonElementToCallToolResponse(json),
+            null => new()
+            {
+                Content = []
             },
-            JsonValueKind.String => new () {
-                Content = [new() { Text = result.Value.ToString(), Type = "text" }]
+
+            string text => new()
+            {
+                Content = [new() { Text = text, Type = "text" }]
             },
-            //null => new()
-            //{
-            //    Content = []
-            //},
-            
-            //string text => new()
-            //{
-            //    Content = [new() { Text = text, Type = "text" }]
-            //},
-            
+
             //Content content => new()
             //{
             //    Content = [content]
             //},
-            
+
             //IEnumerable<string> texts => new()
             //{
             //    Content = [.. texts.Select(x => new Content() { Type = "text", Text = x ?? string.Empty })]
             //},
-            
+
             //IEnumerable<Content> contents => new()
             //{
             //    Content = [.. contents]
             //},
-            
-            //CallToolResponse callToolResponse => callToolResponse,
+
+            CallToolResponse callToolResponse => callToolResponse,
 
             _ => new()
             {
@@ -169,6 +188,31 @@ public class McpScriptServerTool : McpServerTool
                 }]
             },
         };
+    }
+
+    private CallToolResponse ConvertJsonElementToCallToolResponse(JsonElement json)
+    {
+        if (json.ValueKind == JsonValueKind.Number)
+            return new()
+            {
+                Content = [new() { Text = json.ToString(), Type = "text" }]
+            };
+        else if (json.ValueKind == JsonValueKind.String)
+            return new()
+            {
+                Content = [new() { Text = json.ToString(), Type = "text" }]
+            };
+        else
+        {
+            return new()
+            {
+                Content = [new()
+                {
+                    Text = JsonSerializer.Serialize(json, McpJsonUtilities.DefaultOptions.GetTypeInfo(typeof(object))),
+                    Type = "text"
+                }]
+            };
+        }
     }
 
 }
