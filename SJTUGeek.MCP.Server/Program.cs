@@ -14,36 +14,36 @@ namespace SJTUGeek.MCP.Server
             var portOption = new Option<int>(
                 aliases: new string[] { "--port", "-p" },
                 getDefaultValue: () => 5173,
-                description: "Ö¸¶¨ SSE ·şÎñ¼àÌıµÄ¶Ë¿ÚºÅ¡£"
+                description: "æŒ‡å®š SSE æœåŠ¡ç›‘å¬çš„ç«¯å£å·ã€‚"
             );
             var hostOption = new Option<string>(
                 aliases: new string[] { "--host", "-h" },
                 getDefaultValue: () => "localhost",
-                description: "Ö¸¶¨ SSE ·şÎñ¼àÌıµÄÖ÷»úÃû»ò IP µØÖ·¡£"
+                description: "æŒ‡å®š SSE æœåŠ¡ç›‘å¬çš„ä¸»æœºåæˆ– IP åœ°å€ã€‚"
             );
             var pyDllOption = new Option<string?>(
                 aliases: new string[] { "--pydll" },
                 getDefaultValue: () => null,
-                description: "Ö¸¶¨ Python ½Å±¾ÔËĞĞ»·¾³µÄ¿âÎÄ¼ş£¨±ØĞëÔÚ PATH »·¾³±äÁ¿Ö¸¶¨µÄÄ¿Â¼ÏÂ£©£¬ÀıÈç python310.dll¡£Èô²»ÌîĞ´£¬Ôò½ûÓÃ Python ½Å±¾¡£"
+                description: "æŒ‡å®š Python è„šæœ¬è¿è¡Œç¯å¢ƒçš„åº“æ–‡ä»¶ï¼ˆå¿…é¡»åœ¨ PATH ç¯å¢ƒå˜é‡æŒ‡å®šçš„ç›®å½•ä¸‹ï¼‰ï¼Œä¾‹å¦‚ python310.dllã€‚è‹¥ä¸å¡«å†™ï¼Œåˆ™ç¦ç”¨ Python è„šæœ¬ã€‚"
             );
             var jsEngineOption = new Option<string?>(
                 aliases: new string[] { "--jsengine" },
                 getDefaultValue: () => null,
-                description: "Ö¸¶¨ JavaScript ½Å±¾ÔËĞĞ»·¾³£¬Ö»ÄÜÌîĞ´¡°V8¡±¡£Èô²»ÌîĞ´£¬Ôò½ûÓÃ JavaScript ½Å±¾¡£"
+                description: "æŒ‡å®š JavaScript è„šæœ¬è¿è¡Œç¯å¢ƒï¼Œåªèƒ½å¡«å†™â€œV8â€ã€‚è‹¥ä¸å¡«å†™ï¼Œåˆ™ç¦ç”¨ JavaScript è„šæœ¬ã€‚"
             );
             var sseOption = new Option<bool>(
                 aliases: new string[] { "--sse" },
                 getDefaultValue: () => true,
-                description: "Ö¸¶¨ MCP ·şÎñÆ÷ÊÇ·ñÊ¹ÓÃ SSE ·½Ê½½øĞĞ½»»¥£¬Èô true£¬ÔòÊ¹ÓÃ SSE ·½Ê½£¬·ñÔòÊ¹ÓÃ stdio ·½Ê½¡£"
+                description: "æŒ‡å®š MCP æœåŠ¡å™¨æ˜¯å¦ä½¿ç”¨ SSE æ–¹å¼è¿›è¡Œäº¤äº’ï¼Œè‹¥ trueï¼Œåˆ™ä½¿ç”¨ SSE æ–¹å¼ï¼Œå¦åˆ™ä½¿ç”¨ stdio æ–¹å¼ã€‚"
             );
             var cookieOption = new Option<string?>(
                 aliases: new string[] { "--cookie", "-C" },
-                description: "Ö¸¶¨ÓÃÓÚ jAccount ÈÏÖ¤µÄ JAAuthCookie ×Ö·û´®¡£"
+                description: "æŒ‡å®šç”¨äº jAccount è®¤è¯çš„ JAAuthCookie å­—ç¬¦ä¸²ã€‚"
             );
             var toolGroupOption = new Option<List<string>>(
                 aliases: new string[] { "--tools" },
                 getDefaultValue: () => new List<string>() { "default" },
-                description: "Ö¸¶¨ÆôÓÃµÄ MCP ¹¤¾ß×é¡£"
+                description: "æŒ‡å®šå¯ç”¨çš„ MCP å·¥å…·ç»„ã€‚"
             );
 
             var rootCommand = new RootCommand("Welcome to SJTUGeek.MCP!");
@@ -106,6 +106,7 @@ namespace SJTUGeek.MCP.Server
             builder.Services.AddHttpContextAccessor();
 
             builder.Services.AddScoped<JaCookieProvider>();
+            builder.Services.AddSingleton<MemoryCacheWrapper>();
 
             builder.WebHost.UseUrls($"http://{appOptions.Host}:{appOptions.Port}");
 

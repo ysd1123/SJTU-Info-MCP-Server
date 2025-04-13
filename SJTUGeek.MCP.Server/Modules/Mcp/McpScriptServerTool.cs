@@ -1,13 +1,8 @@
-﻿using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.AI;
 using ModelContextProtocol.Protocol.Types;
-using ModelContextProtocol.Utils;
 using ModelContextProtocol.Utils.Json;
 using Python.Runtime;
 using SJTUGeek.MCP.Server.Models;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Text.Json;
 using SJTUGeek.MCP.Server.Extensions;
 using SJTUGeek.MCP.Server.Modules;
@@ -76,15 +71,6 @@ public class McpScriptServerTool : McpServerTool
         RequestContext<CallToolRequestParams> request, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        //AIFunctionArguments arguments = new()
-        //{
-        //    Services = request.Server?.Services,
-        //    Context = new Dictionary<object, object?>() { [typeof(RequestContext<CallToolRequestParams>)] = request }
-        //};
-
-        var cookieProvider = request.Services!.GetRequiredService<JaCookieProvider>();
-
         JsonElement? result;
         try
         {
@@ -102,11 +88,19 @@ public class McpScriptServerTool : McpServerTool
 
                 using (PyModule scope = Py.CreateScope())
                 {
-                    PyObject module = Py.Import(
+                    //PyModule context_module = Py.CreateScope("mcp_context");
+                    //context_module.Set("JaAuthCookie", cookieProvider.GetCookie());
+                    //context_module.Set("ServiceProvider", request.Services);
+
+                    //scope.Import("scripts.base");
+                    PyObject context_module = scope.Import("scripts.base.mcp_context");
+                    McpScriptToolExecuteContext context = new McpScriptToolExecuteContext(request.Services!);
+                    context_module.SetAttr("CONTEXT", context.ToPython());
+
+                    PyObject tool_module = scope.Import(
                         "scripts." + Path.GetFileNameWithoutExtension(ScriptName)
                     );
-                    PyObject func = module.GetAttr(ToolInfo.EntryPoint);
-                    var callResult = func.Invoke(arguments.ToArray());
+                    var callResult = tool_module.InvokeMethod(ToolInfo.EntryPoint, arguments.ToArray());
 
                     dynamic pyJson = scope.Import("json");
                     var callResultJSON = pyJson.dumps(callResult);
@@ -116,8 +110,6 @@ public class McpScriptServerTool : McpServerTool
         }
         catch (PythonException ex)
         {
-            // 异常处理逻辑
-            //Console.WriteLine($"执行插件失败: {plugin.Name}\n{ex.Message}");
             return new CallToolResponse()
             {
                 IsError = true,
