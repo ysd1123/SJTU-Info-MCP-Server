@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace SJTUGeek.MCP.Server.Models
@@ -19,6 +19,12 @@ namespace SJTUGeek.MCP.Server.Models
 
         [JsonPropertyName("author")]
         public string Author { get; set; }
+
+        [JsonPropertyName("category")]
+        public string Category { get; set; }
+
+        [JsonPropertyName("require_auth")]
+        public bool RequireAuth { get; set; }
 
         [JsonPropertyName("tools")]
         public List<ScriptToolInfo> Tools { get; set; }

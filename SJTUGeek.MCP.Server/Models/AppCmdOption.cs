@@ -1,4 +1,4 @@
-﻿using System.CommandLine.Binding;
+using System.CommandLine.Binding;
 using System.CommandLine;
 using System;
 using System.Net;
@@ -25,9 +25,9 @@ namespace SJTUGeek.MCP.Server.Models
         private readonly Option<string?> _jsEngineOption;
         private readonly Option<bool> _sseOption;
         private readonly Option<string?> _cookieOption;
-        private readonly Option<List<string>> _toolGroupOption;
+        private readonly Option<List<string>?> _toolGroupOption;
 
-        public AppCmdOptionBinder(Option<int> portOption, Option<string> hostOption, Option<string?> pyDllOption, Option<string?> jsEngineOption, Option<bool> sseOption, Option<string?> cookieOption, Option<List<string>> toolGroupOption)
+        public AppCmdOptionBinder(Option<int> portOption, Option<string> hostOption, Option<string?> pyDllOption, Option<string?> jsEngineOption, Option<bool> sseOption, Option<string?> cookieOption, Option<List<string>?> toolGroupOption)
         {
             _portOption = portOption;
             _hostOption = hostOption;

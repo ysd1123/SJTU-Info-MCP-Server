@@ -1,5 +1,6 @@
-﻿using ModelContextProtocol.Server;
+using ModelContextProtocol.Server;
 using SJTUGeek.MCP.Server.Helpers;
+using SJTUGeek.MCP.Server.Models;
 using SJTUGeek.MCP.Server.StaticTools;
 
 namespace SJTUGeek.MCP.Server.Extensions
@@ -12,10 +13,13 @@ namespace SJTUGeek.MCP.Server.Extensions
             DirectoryInfo dirInfo = new DirectoryInfo(scriptPath);
             foreach (var file in dirInfo.GetFiles())
             {
-                if (file.Extension == ".py")
+                if (file.Extension == ".py" && AppCmdOption.Default.PythonDll != null)
                 {
                     foreach (var tool in McpScriptServerTool.CreateBatch(file.Name))
-                        services.AddSingleton(
+                        if (AppCmdOption.Default.EnabledToolGroups == null ||
+                            AppCmdOption.Default.EnabledToolGroups.Count == 0 || 
+                            AppCmdOption.Default.EnabledToolGroups.Contains(tool.CategoryName))
+                            services.AddSingleton(
                             (Func<IServiceProvider, McpServerTool>)(
                                 services => tool
                             )

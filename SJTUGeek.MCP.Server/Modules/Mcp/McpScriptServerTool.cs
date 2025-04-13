@@ -36,7 +36,10 @@ public class McpScriptServerTool : McpServerTool
                         toolDef.Description = toolInfo.Description;
                         toolDef.InputSchema = toolInfo.Schema;
 
-                        list.Add(new McpScriptServerTool(scriptName, toolInfo, toolDef));
+                        list.Add(new McpScriptServerTool(scriptName, toolInfo, toolDef)
+                        {
+                            CategoryName = metadata_json.Category
+                        });
                     }
                 }
             }
@@ -48,8 +51,9 @@ public class McpScriptServerTool : McpServerTool
         }
     }
 
-    internal string ScriptName { get; }
-    internal ScriptToolInfo ToolInfo { get; }
+    public string ScriptName { get; }
+    public string CategoryName { get; set; }
+    public ScriptToolInfo ToolInfo { get; }
 
     /// <summary>Initializes a new instance of the <see cref="McpServerTool"/> class.</summary>
     private McpScriptServerTool(string scriptName, ScriptToolInfo toolInfo, Tool toolDef)

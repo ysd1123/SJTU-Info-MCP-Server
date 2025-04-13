@@ -3,6 +3,7 @@ using Python.Runtime;
 using SJTUGeek.MCP.Server.Extensions;
 using SJTUGeek.MCP.Server.Models;
 using SJTUGeek.MCP.Server.Modules;
+using SJTUGeek.MCP.Server.StaticTools;
 using System.CommandLine;
 
 namespace SJTUGeek.MCP.Server
@@ -40,9 +41,9 @@ namespace SJTUGeek.MCP.Server
                 aliases: new string[] { "--cookie", "-C" },
                 description: "指定用于 jAccount 认证的 JAAuthCookie 字符串。"
             );
-            var toolGroupOption = new Option<List<string>>(
+            var toolGroupOption = new Option<List<string>?>(
                 aliases: new string[] { "--tools" },
-                getDefaultValue: () => new List<string>() { "default" },
+                getDefaultValue: () => new List<string>(),
                 description: "指定启用的 MCP 工具组。"
             );
 
@@ -80,10 +81,13 @@ namespace SJTUGeek.MCP.Server
             //}
             AppCmdOption.Default = appOptions;
 
-            Runtime.PythonDLL = appOptions.PythonDll;
-            PythonEngine.Initialize();
-            PythonEngine.BeginAllowThreads();
-
+            if (appOptions.PythonDll != null)
+            {
+                Runtime.PythonDLL = appOptions.PythonDll;
+                PythonEngine.Initialize();
+                PythonEngine.BeginAllowThreads();
+            }
+            
             var builder = WebApplication.CreateBuilder();
 
             builder.Logging.AddConsole(consoleLogOptions =>
