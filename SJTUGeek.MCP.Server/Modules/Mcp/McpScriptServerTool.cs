@@ -44,7 +44,7 @@ public class McpScriptServerTool : McpServerTool
                 }
             }
             return list;
-        }
+        } 
         catch (PythonException ex)
         {
             throw;
