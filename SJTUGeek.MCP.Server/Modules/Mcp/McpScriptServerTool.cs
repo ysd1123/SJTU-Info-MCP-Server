@@ -2,10 +2,11 @@ using Microsoft.Extensions.AI;
 using ModelContextProtocol.Protocol.Types;
 using ModelContextProtocol.Utils.Json;
 using Python.Runtime;
-using SJTUGeek.MCP.Server.Models;
-using System.Text.Json;
 using SJTUGeek.MCP.Server.Extensions;
+using SJTUGeek.MCP.Server.Models;
 using SJTUGeek.MCP.Server.Modules;
+using System.CommandLine;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace ModelContextProtocol.Server;
@@ -50,7 +51,7 @@ public class McpScriptServerTool : McpServerTool
             throw;
         }
     }
-
+     
     public string ScriptName { get; }
     public string CategoryName { get; set; }
     public ScriptToolInfo ToolInfo { get; }
@@ -80,7 +81,8 @@ public class McpScriptServerTool : McpServerTool
             using (Py.GIL())
             {
                 ScriptToolSchema schema = JsonSerializer.Deserialize<ScriptToolSchema>(ToolInfo.Schema);
-                var arguments = new List<PyObject>();
+                var positionalArguments = new List<PyObject>();
+                var keywordArguments = new PyDict();
                 var argDict = request.Params?.Arguments;
                 //if (argDict is not null)
                 //{
@@ -93,24 +95,38 @@ public class McpScriptServerTool : McpServerTool
                 {
                     if (argDict is not null)
                     {
-                        if (argDict.ContainsKey(definedArg.Key))
+                        if (schema.Required.Contains(definedArg.Key))
                         {
-                            arguments.Add(argDict[definedArg.Key].GetCommonValue().ToPython());
+                            //positional argument
+                            if (argDict.ContainsKey(definedArg.Key))
+                            {
+                                positionalArguments.Add(argDict[definedArg.Key].GetCommonValue().ToPython());
+                            }
+                            else
+                            {
+                                //required but not present
+                                throw new ArgumentException("argument missing");
+                            }
                         }
-                        else if (!schema.Required.Contains(definedArg.Key))
+                        else
                         {
-                            arguments.Add(PyObject.None);
-                        }
-                        else //required but not present
-                        {
-                            throw new ArgumentException("argument missing");
+                            //keyword argument
+                            if (argDict.ContainsKey(definedArg.Key))
+                            {
+                                keywordArguments.SetItem(definedArg.Key, argDict[definedArg.Key].GetCommonValue().ToPython());
+                            }
+                            else
+                            {
+                                //use its default value
+                            }
                         }
                     }
                     else
                     {
                         if (!schema.Required.Contains(definedArg.Key))
                         {
-                            arguments.Add(PyObject.None);
+                            //keyword argument
+                            //use its default value
                         }
                         else //required but not present
                         {
@@ -133,19 +149,18 @@ public class McpScriptServerTool : McpServerTool
                     PyObject tool_module = scope.Import(
                         "scripts." + Path.GetFileNameWithoutExtension(ScriptName)
                     );
-                    var callResult = tool_module.InvokeMethod(ToolInfo.EntryPoint, arguments.ToArray());
+                    var callResult = tool_module.InvokeMethod(ToolInfo.EntryPoint, positionalArguments.ToArray(), keywordArguments);
 
                     if (PyTuple.IsTupleType(callResult))
                     {
                         if (callResult.GetItem(0).As<bool>() == false)
                         {
-                            dynamic pyJson = scope.Import("json");
-                            var callResultJSON = pyJson.dumps(callResult.GetItem(1));
+                            var errMessage = callResult.GetItem(1).As<string>();
                             return new CallToolResponse()
                             {
                                 IsError = true,
-                                Content = [new() { Text = callResultJSON.ToString(), Type = "text" }],
-                            };
+                                Content = [new() { Text = errMessage, Type = "text" }],
+                            }; 
                         }
                         callResult = callResult.GetItem(1);
                     }
