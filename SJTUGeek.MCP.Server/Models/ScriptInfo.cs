@@ -38,7 +38,7 @@ namespace SJTUGeek.MCP.Server.Models
         [JsonPropertyName("description")]
         public string? Description { get; set; }
 
-        [JsonPropertyName("entryPoint")]
+        [JsonPropertyName("entrypoint")]
         public string EntryPoint { get; set; }
 
         [JsonPropertyName("schema")]
