@@ -3,7 +3,6 @@ using Python.Runtime;
 using SJTUGeek.MCP.Server.Extensions;
 using SJTUGeek.MCP.Server.Models;
 using SJTUGeek.MCP.Server.Modules;
-using SJTUGeek.MCP.Server.StaticTools;
 using System.CommandLine;
 
 namespace SJTUGeek.MCP.Server
@@ -97,15 +96,16 @@ namespace SJTUGeek.MCP.Server
             });
 
             var mcpServerBuilder = builder.Services
-                .AddMcpServer()
+                .AddMcpServer(McpScriptBuilderExtensions.ConfigureMcpOptions)
                 .WithHttpTransport()
+                .WithToolsFromAssembly(typeof(Program).Assembly)
                 //.WithTools<AddTool>()
                 //.WithTools<TestTool>()
                 ;
             if (!appOptions.EnableSse)
                 mcpServerBuilder.WithStdioServerTransport();
 
-            builder.Services.AddMcpScripts();
+            //builder.Services.AddMcpScripts();
 
             builder.Services.AddMemoryCache(); // Singleton
             builder.Services.AddHttpContextAccessor();
