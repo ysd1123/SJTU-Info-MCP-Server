@@ -1,6 +1,7 @@
 using ModelContextProtocol.Server;
 using SJTUGeek.MCP.Server.Helpers;
 using SJTUGeek.MCP.Server.Models;
+using System.Reflection;
 
 namespace SJTUGeek.MCP.Server.Extensions
 {
@@ -49,6 +50,38 @@ namespace SJTUGeek.MCP.Server.Extensions
                             options.Capabilities.Tools.ToolCollection.Add(tool);
                 }
             }
+        }
+
+        public static IMcpServerBuilder WithToolsFromCurrentAssembly(this IMcpServerBuilder builder)
+        {
+            var toolAssembly = Assembly.GetCallingAssembly();
+
+            var toolTypes = from t in toolAssembly.GetTypes()
+                        where t.GetCustomAttribute<McpServerToolTypeAttribute>() is not null
+                        select t;
+
+            var schemaCreateOptions = new Microsoft.Extensions.AI.AIJsonSchemaCreateOptions()
+            {
+                RequireAllProperties = false
+            };
+
+            foreach (var toolType in toolTypes)
+            {
+                if (toolType is not null)
+                {
+                    foreach (var toolMethod in toolType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance))
+                    {
+                        if (toolMethod.GetCustomAttribute<McpServerToolAttribute>() is not null)
+                        {
+                            builder.Services.AddSingleton((Func<IServiceProvider, McpServerTool>)(toolMethod.IsStatic ?
+                                services => McpServerTool.Create(toolMethod, options: new() { Services = services, SchemaCreateOptions = schemaCreateOptions }) :
+                                services => McpServerTool.Create(toolMethod, toolType, new() { Services = services, SchemaCreateOptions = schemaCreateOptions })));
+                        }
+                    }
+                }
+            }
+
+            return builder;
         }
     }
 }

@@ -98,7 +98,7 @@ namespace SJTUGeek.MCP.Server
             var mcpServerBuilder = builder.Services
                 .AddMcpServer(McpScriptBuilderExtensions.ConfigureMcpOptions)
                 .WithHttpTransport()
-                .WithToolsFromAssembly(typeof(Program).Assembly)
+                .WithToolsFromCurrentAssembly()
                 //.WithTools<AddTool>()
                 //.WithTools<TestTool>()
                 ;
