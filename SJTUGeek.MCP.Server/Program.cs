@@ -111,6 +111,8 @@ namespace SJTUGeek.MCP.Server
             builder.Services.AddHttpContextAccessor();
 
             builder.Services.AddScoped<JaCookieProvider>();
+            builder.Services.AddScoped<CookieContainerProvider>();
+            builder.Services.AddScoped<HttpClientFactory>();
             builder.Services.AddSingleton<MemoryCacheWrapper>();
 
             builder.WebHost.UseUrls($"http://{appOptions.Host}:{appOptions.Port}");
