@@ -1,8 +1,6 @@
 ﻿using ModelContextProtocol.Protocol.Types;
 using ModelContextProtocol.Server;
 using SJTUGeek.MCP.Server.Modules;
-using System.Collections.Generic;
-using System.CommandLine.Parsing;
 using System.ComponentModel;
 using System.Net;
 using System.Text.Json.Serialization;
