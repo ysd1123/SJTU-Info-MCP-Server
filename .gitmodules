@@ -3,4 +3,4 @@
 	url = https://github.com/1357310795/mcp-csharp-sdk.git
 [submodule "SJTUGeek.MCP.Scripts"]
 	path = SJTUGeek.MCP.Scripts
-	url = https://github.com/SJTU-Geek/sjtu-mcp-contrib.git
+	url = https://github.com/ysd1123/sjtu-mcp-contrib.git
